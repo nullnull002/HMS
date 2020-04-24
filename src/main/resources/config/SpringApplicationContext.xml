@@ -11,11 +11,13 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-    <!-- 加载资源文件 -->
-    <context:property-placeholder location="classpath:config/DBConfig.properties"/>
+ <!--Spring的配置文件，这里主要配置和业务逻辑有关的-->
+<!--数据源 ，事务控制-->
+    <!-- 加载资源文件 ，引入配置文件 数据源在下方-->
+    <context:property-placeholder location="classpath:config/dbConfig.properties"/>
 
-    <!-- 配置自动扫描包 -->
-    <context:component-scan base-package="com.yxs.pms">
+    <!-- 配置自动扫描包 把业务逻辑组件扫描进来，不扫控制器，其他都扫描 -->
+    <context:component-scan base-package="com.yxs.hms">
         <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
         <context:exclude-filter type="annotation"
                                 expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
@@ -28,7 +30,7 @@
     <!-- ============================================
                 ExcelUtil 配置
          ============================================-->
-    <bean id="ExcelUtil" class="com.yxs.pms.util.ExcelUtil">
+    <bean id="ExcelUtil" class="com.yxs.hms.util.ExcelUtil">
         <constructor-arg type="java.lang.String" value="config/ExcelUtilConfig.xml"/>
     </bean>
 
@@ -54,7 +56,7 @@
         <property name="cacheManagerConfigFile" value="classpath:config/ehcache.xml"/>
     </bean>
     <!-- Realm 的配置 -->
-    <bean id="userAuthorizingRealm" class="com.yxs.pms.security.realms.UserAuthorizingRealm"/>
+    <bean id="userAuthorizingRealm" class="com.yxs.hms.security.realms.UserAuthorizingRealm"/>
 
 
     <!-- ============================================
@@ -80,18 +82,18 @@
         <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"/>
     </bean>
     <!-- 配置身份验证器，处理 Ajax 请求 -->
-    <bean id="extendFormAuthenticationFilter" class="com.yxs.pms.security.filter.ExtendFormAuthenticationFilter">
+    <bean id="extendFormAuthenticationFilter" class="com.yxs.hms.security.filter.ExtendFormAuthenticationFilter">
         <property name="usernameParam" value="username"/>
         <property name="passwordParam" value="password"/>
         <property name="rememberMeParam" value="rememberMe"/>
         <property name="loginUrl" value="/login"/>
     </bean>
-    <bean id="anyOfRoles" class="com.yxs.pms.security.filter.AnyOfRolesAuthorizationFilter"/>
+    <bean id="anyOfRoles" class="com.yxs.hms.security.filter.AnyOfRolesAuthorizationFilter"/>
     <!-- 配置获取 URL 权限信息的 Factory -->
     <bean id="filterChainDefinitionMap" factory-bean="filterChainDefinitionMapBuilder"
           factory-method="builderFilterChainDefinitionMap"/>
     <bean id="filterChainDefinitionMapBuilder"
-          class="com.yxs.pms.security.service.FilterChainDefinitionMapBuilder"/>
+          class="com.yxs.hms.security.service.FilterChainDefinitionMapBuilder"/>
 
 
     <!-- ============================================
@@ -106,43 +108,53 @@
         <property name="testConnectionOnCheckout" value="${jdbc.testConnectionOnCheckout}"/>
     </bean>
 
-    <!-- 配置 SqlSessionFactoryBean -->
+    <!-- 配置 SqlSessionFactoryBean  这是配置与mybatis的整合-->
     <bean id="SqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--数据源就是最上方配置的数据源-->
         <property name="dataSource" ref="dataSource"/>
+        <!--指定mybatis全局配置文件的路径 -->
         <property name="configLocation" value="classpath:config/MyBatisConfiguration.xml"/>
         <!--&lt;!&ndash; 自动扫描mapping.xml文件 &ndash;&gt;-->
-        <!--<property name="mapperLocations" value="classpath:com/yxs/pms/dao/*.xml"></property>-->
+        <!--<property name="mapperLocations" value="classpath:com/yxs/hms/dao/*.xml"></property>-->
     </bean>
 
-    <!-- 配置事务 -->
+    <!-- 配置事务   事务控制的配置-->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!--控制住数据源-->
         <property name="dataSource" ref="dataSource"/>
-    </bean>
-    <!--<tx:annotation-driven transaction-manager="transactionManager"/>-->
+    </bean><!--下方的aop 开启基于注解的事务-->
 
+   <!--配置事务增强，即事务如何启动-->
+    <!--<tx:annotation-driven transaction-manager="transactionManager"/>-->
     <tx:advice id="txAdvice" transaction-manager="transactionManager">
         <tx:attributes>
+            <!--以select开始的所有方法 查询，read-only为true-->
             <tx:method name="select*" read-only="true"/>
+            <!--所有方法都是事务方法 -->
             <tx:method name="*"/>
         </tx:attributes>
     </tx:advice>
+    <!--使用xml配置形式的事务-->
     <aop:config>
-        <aop:pointcut expression="execution(* com.yxs.pms.common.service.Interface..*.*(..)) ||
-         execution(* com.yxs.pms.security.service.Interface..*.*(..))"
+        <aop:pointcut expression="execution(* com.yxs.hms.service.Interface..*.*(..)) ||
+         execution(* com.yxs.hms.security.service.Interface..*.*(..))"
                       id="txAdvicePointcut"/>
+        <!--配置事务增强 advice-ref对应上方tx的id  pointcut-ref切入那些方法则对应pointcut的id-->
         <aop:advisor advice-ref="txAdvice" pointcut-ref="txAdvicePointcut" order="1"/>
     </aop:config>
 
 
     <!-- 配置 Service 层日志记录 -->
-    <bean id="serviceLogging" class="com.yxs.pms.util.aop.ServiceLogging"/>
+    <bean id="serviceLogging" class="com.yxs.hms.util.aop.ServiceLogging"/>
     <!-- 配置用户操作日志记录 -->
-    <bean id="userOperationLogging" class="com.yxs.pms.util.aop.UserOperationLogging"/>
+    <bean id="userOperationLogging" class="com.yxs.hms.util.aop.UserOperationLogging"/>
 
-    <!-- AOP 配置 -->
+    <!--使用xml配置形式的事务-->
+    <!--  AOP 配置 -->
     <aop:config>
-        <aop:pointcut id="serviceMethodLoggingPointcut" expression="execution(* com.yxs.pms.common.service.Impl.*.*(..)) ||
-         execution(* com.yxs.pms.security.service.Impl.*.*(..))"/>
+        <!--pointcut切入点表达式--> <!--(..代表参数任意多)-->
+        <aop:pointcut id="serviceMethodLoggingPointcut" expression="execution(* com.yxs.hms.service.Impl.*.*(..)) ||
+         execution(* com.yxs.hms.security.service.Impl.*.*(..))"/>
         <aop:aspect id="serviceLoggingAspect" ref="serviceLogging" order="100">
             <aop:before method="loggingMethodInvoked" pointcut-ref="serviceMethodLoggingPointcut"/>
             <aop:after-throwing method="loggingServiceException" pointcut-ref="serviceMethodLoggingPointcut"
@@ -150,15 +162,16 @@
         </aop:aspect>
     </aop:config>
     <aop:config>
-        <aop:pointcut expression="execution(* com.yxs.pms.common.service.Impl.*.*(..)) and @annotation(userOperation)" id="userOperationLoggingPointcut"/>
+        <aop:pointcut expression="execution(* com.yxs.hms.service.Impl.*.*(..)) and @annotation(userOperation)" id="userOperationLoggingPointcut"/>
         <aop:aspect id="userOperationLoggingAspect" ref="userOperationLogging" order="20">
             <aop:after-returning method="loggingUserOperation" pointcut-ref="userOperationLoggingPointcut"
                                  returning="returnValue"/>
         </aop:aspect>
     </aop:config>
 
-    <!-- 配置 MyBatis MapperScannerConfigure -->
+    <!-- 配置 MyBatis MapperScannerConfigure 配置扫描器。将Mybatis接口实现加入到ioc容器中 -->
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="com.yxs.pms.dao"/>
+        <!--扫描所有dao接口的实现，加入到ioc容器中-->
+        <property name="basePackage" value="com.yxs.hms.dao"/>
     </bean>
 </beans>

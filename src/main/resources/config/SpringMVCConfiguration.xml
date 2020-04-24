@@ -6,29 +6,30 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
-	
-	<!-- 配置 自动扫描的包 -->
-	<context:component-scan base-package="com.yxs.pms"
+
+	<!--SpringMVC的配置文件，包含网站跳转逻辑的控制，配置-->
+	<!-- 配置 自动扫描的包   只扫描控制器 annotation：注解  use-default-filters="false"默认的过滤器规则失效 -->
+	<context:component-scan base-package="com.yxs.hms"
 		use-default-filters="false">
 		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
 		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
 	</context:component-scan>
 	
-	<!-- 配置视图解析器 -->
+	<!-- 配置视图解析器 ，方便页面返回信息 -->
 	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<property name="viewNames" value="WEB-INF/jsp*"/>
 		<!--<property name="prefix" value="/WEB-INF/jsp/"/>-->
-		<property name="prefix" value="/"/>
+		<property name="prefix" value="/"/> <!--这里定义的是/ 故tomcat里面的要定义成/-->
 		<property name="suffix" value=".jsp"/>
-		<property name="order" value="0"/>
+		<property name="order" value="0"/> <!--解析器order属性(order越小，优先级别越高),指定视图的解析优先级-->
 	</bean>
 	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<property name="viewNames" value="pagecomponent*"/>
+		<property name="viewNames" value="pageComponent*"/>
 		<property name="prefix" value="/"/>
 		<property name="suffix" value=".jsp"/>
 		<property name="order" value="1"/>
 	</bean>
-	
+	<!--两个标准配置，将SpringMVC不能处理的请求交给tomcat 能支持SpringMVC更高级的一些功能 JSR303校验，快捷的ajax请求 映射动态请求..-->
 	<mvc:default-servlet-handler/>
 	<mvc:annotation-driven/>
 	
