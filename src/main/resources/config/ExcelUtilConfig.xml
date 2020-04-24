@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<!--打印-->
 <configuration>
 	<entity class="com.yxs.pms.domain.Supplier">
 		<property>

@@ -15,7 +15,7 @@
          user.home - User's home directory
          user.dir - User's current working directory
          java.io.tmpdir - Default temp file path -->
-    <diskStore path="java.io.tmpdir"/>
+    <diskStore path="java.io.tmpdir"/><!--  java.io.tmpdir – 默认临时文件路径   diskStore为缓存路径，ehcache分为内存和磁盘两级，此属性定义磁盘的缓存位置。-->
 
 
     <!--Default Cache configuration. These will applied to caches programmatically created through
@@ -34,6 +34,12 @@
                             has reached the maxInMemory limit.
 
         -->
+    <!--默认缓存策略，当ehcache找不到定义的缓存时，则使用这个缓存策略。只能定义一个。-->
+    <!--:缓存最大数目-->
+    <!--对象是否永久有效，一但设置了，timeout将不起作用。-->
+    <!--设置对象在失效前的允许闲置时间（单位：秒）。仅当eternal=false对象不是永久有效时使用，可选属性，默认值是0，也就是可闲置时间无穷大-->
+    <!--设置对象在失效前允许存活时间（单位：秒）。最大时间介于创建时间和失效时间之间。仅当eternal=false对象不是永久有效时使用，默认是0.，也就是对象存活时间无穷大。-->
+    <!--是否保存到磁盘，当系统当机时-->
     <defaultCache
         maxElementsInMemory="10000"
         eternal="false"
