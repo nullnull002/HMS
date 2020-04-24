@@ -10,3 +10,6 @@ body {
 #checkCodeImg:hover {
     cursor: pointer;
 }
+<!-- margin-top据上外边距 -->
+<!--hover 选择器-->
+<!--cursor 属性规定要显示的光标的类型（形状）。pointer 光标呈现为指示链接的指针（一只手）-->
